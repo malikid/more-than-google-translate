@@ -1,0 +1,44 @@
+{
+  "name": "MoreThanGoogleTranslate",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "MoreThanGoogleTranslate Chrome Extension",
+  "author": [
+    "malikid"
+  ],
+  "background": {
+    "scripts": [
+      "lib/jquery-3.3.1.min.js",
+      "js/config.js",
+      "js/background.js"
+    ],
+    "persistent": true
+  },
+  "browser_action": {
+    "default_title": "MoreThanGoogleTranslate",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "<all_urls>",
+    "tabs",
+    "identity",
+    "*://*.google.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*/*",
+        "http://*/*"
+      ],
+      "js": [
+        "js/config.js",
+        "lib/jquery-3.3.1.min.js",
+        "js/inject.js"
+      ],
+      "css": [
+        "css/inject.css"
+      ],
+      "run_at": "document_end"
+    }
+  ]
+}
