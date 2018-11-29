@@ -7,6 +7,11 @@ var Config = (function() {
     toLanguage: "繁體中文"
   };
 
+  self.apiKeys = {
+    TRANSLATION: "",
+    VISION: ""
+  };
+
   self.languageOptions = {};
   self.languageOptions["英文"] = "en";
   self.languageOptions["荷蘭文"] = "nl";

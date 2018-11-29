@@ -6,12 +6,15 @@
 
 const SUCCESS = 200, FAILURE = 500;
 const LANGUAGE_OPTIONS = Config.languageOptions;
+const KEYS = Config.apiKeys;
+const TRANSLATION_KEY = KEYS.TRANSLATION;
+const VISION_KEY = KEYS.VISION;
 
 
 
 function getTranslationFromGoogle(text, from, to) {
   var defer = $.Deferred();
-  var url = "https://translation.googleapis.com/language/translate/v2?key=AIzaSyAz54FH21Qkyhn9qBp7XVW2LsXVMKanAfM";
+  var url = "https://translation.googleapis.com/language/translate/v2?key=" + TRANSLATION_KEY;
 
   $.post(url, {
     'q': text,
