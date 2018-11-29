@@ -5,7 +5,6 @@
 // }
 
 const SUCCESS = 200, FAILURE = 500;
-const LANGUAGE_OPTIONS = Config.languageOptions;
 const CONSTANTS = Config.constants;
 const TRANSLATE = CONSTANTS.TRANSLATE;
 const PROCESSING = CONSTANTS.PROCESSING;
@@ -17,6 +16,27 @@ var toSelected = defaultLanguages.toLanguage;
 
 
 
+function sendMessageToBackground(action, data, callback) {
+  if(isFunction(data)) {
+    callback = data;
+    data = undefined;
+  }
+
+  var message = {
+    action: action,
+    data: data
+  };
+
+  var argumentsToSend = [message];
+  if(callback) {
+    argumentsToSend.push(callback);
+  }
+
+  chrome.runtime.sendMessage.apply(this, argumentsToSend);
+}
+
+
+
 function getTranslationFromGoogle(text, from, to) {
   var defer = $.Deferred();
 
@@ -25,21 +45,26 @@ function getTranslationFromGoogle(text, from, to) {
     return defer.promise();
   }
 
-  var url = "https://translation.googleapis.com/language/translate/v2?key=AIzaSyAz54FH21Qkyhn9qBp7XVW2LsXVMKanAfM";
+  var data = {
+    text: text,
+    from: from,
+    to: to
+  };
 
-  $.post(url, {
-    'q': text,
-    'source': LANGUAGE_OPTIONS[from],
-    'target': LANGUAGE_OPTIONS[to],
-    'format': 'text'
-  }, function(data) {
-    defer.resolve(data.data.translations[0].translatedText);
-  }, "json");
-  // Test Only
-  // defer.resolve('aaa');
+  sendMessageToBackground("translate", data, function(response) {
+    var status = response.status;
+
+    if(status === SUCCESS) {
+      defer.resolve(response.result);
+    } else {
+      defer.reject(response.error);
+    }
+  });
 
   return defer.promise();
 }
+
+
 
 function getText(node, from, to) {
   var originNode = node;
@@ -48,16 +73,27 @@ function getText(node, from, to) {
     if(!node.data) {
       return node;
     } else {
-      return getTranslationFromGoogle(node.data, from, to).then(function(value) {
+      return getTranslationFromGoogle(node.data, from, to)
+      .then(function(value) {
         node.data = value;
         return node;
       });
     }
   } else if(node.tagName === "INPUT") {
-    return getTranslationFromGoogle(node.value, from, to).then(function(value) {
-      node.value = value;
-      return node;
-    });
+    if(node.value) {
+      return getTranslationFromGoogle(node.value, from, to)
+      .then(function(value) {
+        node.value = value;
+        return node;
+      });
+    }
+    if(node.placeholder) {
+      return getTranslationFromGoogle(node.placeholder, from, to)
+      .then(function(value) {
+        node.placeholder = value;
+        return node;
+      });
+    }
   }
 
   var promises = [];
@@ -78,10 +114,14 @@ function getText(node, from, to) {
         });
       }
       defer.resolve(outerNode);
+    })
+    .catch(function(error) {
+      defer.reject(error);
     });
 
   return defer.promise();
 }
+
 
 
 function translate(body, from, to) {
@@ -156,11 +196,14 @@ function setMessageListeners() {
         fromSelected = data.from;
         toSelected = data.to;
 
-        translate(body, fromSelected, toSelected).then(function() {
+        translate(body, fromSelected, toSelected)
+        .done(function() {
           sendResponse(SUCCESS);
-          return true;
+        })
+        .catch(function() {
+          sendResponse(FAILURE);
         });
-        // break;
+        return true;
 
       case "switchOff":
         body = getCurrentTabContent();
@@ -176,8 +219,7 @@ function setMessageListeners() {
           from: fromSelected,
           to: toSelected
         });
-        // return true;
-        break;
+        return true;
     }
   });
 }

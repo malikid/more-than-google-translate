@@ -32,6 +32,7 @@
       ],
       "js": [
         "js/config.js",
+        "js/utilities.js",
         "lib/jquery-3.3.1.min.js",
         "js/inject.js"
       ],
