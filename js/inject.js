@@ -38,6 +38,30 @@ function sendMessageToBackground(action, data, callback) {
 
 
 
+function ocrFromGoogle(image, from, to) {
+  let defer = $.Deferred();
+
+  let data = {
+    image,
+    from,
+    to
+  };
+
+  sendMessageToBackground("ocr", data, response => {
+    let {status} = response;
+
+    if(status === SUCCESS) {
+      defer.resolve(response.result);
+    } else {
+      defer.reject(response.error);
+    }
+  });
+
+  return defer.promise();
+}
+
+
+
 function getTranslationFromGoogle(text, from, to) {
   let defer = $.Deferred();
 
@@ -95,6 +119,16 @@ function getText(node, from, to) {
         return node;
       });
     }
+  } else if(node.tagName === "IMG") {
+    return ocrFromGoogle(node.src, from, to)
+    .then(result => {
+      if(!result) {
+        return node;
+      }
+      let {x, y} = result.boundingPoly.vertices[0];
+      let node2 = $("<div class='more-than-google-translate' style='position: relative;'>" + node.outerHTML + "<div class='text-block' style='position: absolute;top: " + y + "px;left: " + x + "px;padding: 15px;background-color: black;color: white;opacity: 0.8;'>" + result.text + "</div></div>");
+      return node2;
+    });
   }
 
   let promises = [];
@@ -155,7 +189,7 @@ function translate(body, from, to) {
       defer.resolve();
     })
     .catch(err => {
-      console.log("Something went wrong", err);
+      console.error("Something went wrong", err);
       defer.reject(err);
     });
   return defer.promise();
