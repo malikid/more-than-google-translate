@@ -11,14 +11,14 @@ const TRANSLATE = CONSTANTS.TRANSLATE;
 const PROCESSING = CONSTANTS.PROCESSING;
 const RESET = CONSTANTS.RESET;
 
-var switchElement, fromElement, toElement;
-var fromSelectedLanguage, toSelectedLanguage;
+let switchElement, fromElement, toElement;
+let fromSelectedLanguage, toSelectedLanguage;
 
 
 
 function addOptionElement(element, language, anotherSelectedLanguage) {
-  var isSelectedByAnotherSelector = false;
-  var option = document.createElement("option");
+  let isSelectedByAnotherSelector = false;
+  let option = document.createElement("option");
   option.text = language;
 
   if(anotherSelectedLanguage && anotherSelectedLanguage === language) {
@@ -33,8 +33,8 @@ function addOptionElement(element, language, anotherSelectedLanguage) {
 
 
 function resetOptions(selectElement) {
-  var optionLength = selectElement.options.length;
-  for(var i = optionLength - 1; i >= 0; i--) {
+  let optionLength = selectElement.options.length;
+  for(let i = optionLength - 1; i >= 0; i--) {
     selectElement.remove(i);
   }
 }
@@ -42,15 +42,15 @@ function resetOptions(selectElement) {
 
 
 function setLanguageSelectors() {
-  var fromSelectedIndex = 0;
-  var toSelectedIndex = 1;
+  let fromSelectedIndex = 0;
+  let toSelectedIndex = 1;
 
   languageOptionKeys = Object.keys(LANGUAGE_OPTIONS);
 
   resetOptions(fromElement);
   resetOptions(toElement);
 
-  for(var i = 0, language, option; i < languageOptionKeys.length; i++) {
+  for(let i = 0, language, option; i < languageOptionKeys.length; i++) {
     language = languageOptionKeys[i];
 
     if(addOptionElement(fromElement, language, toSelectedLanguage)) {
@@ -83,12 +83,12 @@ function init(data) {
 
   setLanguageSelectors();
 
-  fromElement.addEventListener("change", function(value) {
+  fromElement.addEventListener("change", function() {
     fromSelectedLanguage = this.value;
     setLanguageSelectors();
   });
 
-  toElement.addEventListener("change", function(value) {
+  toElement.addEventListener("change", function() {
     toSelectedLanguage = this.value;
     setLanguageSelectors();
   });
@@ -104,15 +104,15 @@ function sendMessageToInject(action, data, callback) {
     data = undefined;
   }
 
-  var message = {
-    action: action,
-    data: data
+  let message = {
+    action,
+    data
   };
 
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    var activeTab = tabs[0];
+    let activeTab = tabs[0];
     if(activeTab) {
-      var argumentsToSend = [activeTab.id, message];
+      let argumentsToSend = [activeTab.id, message];
       if(callback) {
         argumentsToSend.push(callback);
       }
@@ -129,12 +129,12 @@ function sendMessageToBackground(action, data, callback) {
     data = undefined;
   }
 
-  var message = {
-    action: action,
-    data: data
+  let message = {
+    action,
+    data
   };
 
-  var argumentsToSend = [message];
+  let argumentsToSend = [message];
   if(callback) {
     argumentsToSend.push(callback);
   }
@@ -146,9 +146,9 @@ function sendMessageToBackground(action, data, callback) {
 
 // switch on/off
 function clickSwitch() {
-  var action, valueToSet;
-  var switchValue = switchElement.innerHTML;
-  var data = {
+  let action, valueToSet;
+  let switchValue = switchElement.innerHTML;
+  let data = {
     from: fromElement.value,
     to: toElement.value
   };
@@ -165,7 +165,7 @@ function clickSwitch() {
     return;
   }
 
-  sendMessageToInject(action, data, function(status) {
+  sendMessageToInject(action, data, status => {
     if(status === SUCCESS) {
       switchElement.innerHTML = valueToSet;
     } else {
@@ -177,11 +177,11 @@ function clickSwitch() {
 
 
 (function () {
-  var enable;
+  let enable;
 
   switchElement = document.getElementById("switch");
 
-  sendMessageToInject("getCurrentTabStatus", function(status) {
+  sendMessageToInject("getCurrentTabStatus", status => {
     enable = status.enable;
 
     if(enable === undefined) {

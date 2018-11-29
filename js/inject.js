@@ -10,9 +10,10 @@ const TRANSLATE = CONSTANTS.TRANSLATE;
 const PROCESSING = CONSTANTS.PROCESSING;
 const RESET = CONSTANTS.RESET;
 const defaultLanguages = Config.default;
-var enable, originalBody;
-var fromSelected = defaultLanguages.fromLanguage;
-var toSelected = defaultLanguages.toLanguage;
+
+let enable, originalBody;
+let fromSelected = defaultLanguages.fromLanguage;
+let toSelected = defaultLanguages.toLanguage;
 
 
 
@@ -22,12 +23,12 @@ function sendMessageToBackground(action, data, callback) {
     data = undefined;
   }
 
-  var message = {
-    action: action,
-    data: data
+  let message = {
+    action,
+    data
   };
 
-  var argumentsToSend = [message];
+  let argumentsToSend = [message];
   if(callback) {
     argumentsToSend.push(callback);
   }
@@ -38,21 +39,21 @@ function sendMessageToBackground(action, data, callback) {
 
 
 function getTranslationFromGoogle(text, from, to) {
-  var defer = $.Deferred();
+  let defer = $.Deferred();
 
   if(!$.trim(text)) {
     defer.resolve('');
     return defer.promise();
   }
 
-  var data = {
-    text: text,
-    from: from,
-    to: to
+  let data = {
+    text,
+    from,
+    to
   };
 
-  sendMessageToBackground("translate", data, function(response) {
-    var status = response.status;
+  sendMessageToBackground("translate", data, response => {
+    let {status} = response;
 
     if(status === SUCCESS) {
       defer.resolve(response.result);
@@ -67,14 +68,14 @@ function getTranslationFromGoogle(text, from, to) {
 
 
 function getText(node, from, to) {
-  var originNode = node;
+  let originNode = node;
 
   if (node.nodeType === 3) {
     if(!node.data) {
       return node;
     } else {
       return getTranslationFromGoogle(node.data, from, to)
-      .then(function(value) {
+      .then(value => {
         node.data = value;
         return node;
       });
@@ -82,40 +83,42 @@ function getText(node, from, to) {
   } else if(node.tagName === "INPUT") {
     if(node.value) {
       return getTranslationFromGoogle(node.value, from, to)
-      .then(function(value) {
+      .then(value => {
         node.value = value;
         return node;
       });
     }
     if(node.placeholder) {
       return getTranslationFromGoogle(node.placeholder, from, to)
-      .then(function(value) {
+      .then(value => {
         node.placeholder = value;
         return node;
       });
     }
   }
 
-  var promises = [];
+  let promises = [];
 
-  if (node = node.firstChild) do {
+  if(node = node.firstChild) do {
     promises.push(getText(node, from, to));
   } while (node = node.nextSibling);
 
-  var defer = $.Deferred();
+  let defer = $.Deferred();
 
   $.when.apply($, promises)
     .done(function() {
       if(originNode) {
-        var outerNode = $(originNode);
+        let outerNode = $(originNode);
         outerNode.empty();
-        $.each(arguments, function(index, value) {
+        $.each(arguments, (index, value) => {
           if(value) outerNode.append(value);
         });
+        defer.resolve(outerNode);
+      } else {
+        defer.resolve('');
       }
-      defer.resolve(outerNode);
     })
-    .catch(function(error) {
+    .catch(error => {
       defer.reject(error);
     });
 
@@ -125,17 +128,17 @@ function getText(node, from, to) {
 
 
 function translate(body, from, to) {
-  var defer = $.Deferred();
-  var bodyElement = body.get(0);
-  var tagName = ""; 
+  let defer = $.Deferred();
+  let bodyElement = body.get(0);
+  let tagName = "";
 
-  var promises = $.map(bodyElement.childNodes, function(child, index) {
+  let promises = $.map(bodyElement.childNodes, (child, index) => {
     tagName = child.tagName;
     switch(tagName) {
       case "SCRIPT":
       case "STYLE":
       case "LINK":
-        var defer2 = $.Deferred();
+        let defer2 = $.Deferred();
         defer2.resolve(child);
         return defer2.promise();
       default:
@@ -146,12 +149,12 @@ function translate(body, from, to) {
   $.when.apply($, promises)
     .done(function() {
       body.empty();
-      $.each(arguments, function(index, value) {
+      $.each(arguments, (index, value) => {
         if(value) body.append(value);
       });
       defer.resolve();
     })
-    .catch(function(err) {
+    .catch(err => {
       console.log("Something went wrong", err);
       defer.reject(err);
     });
@@ -181,9 +184,9 @@ function getCurrentTabContent(cb) {
 
 function setMessageListeners() {
   console.log("setMessageListeners");
-  var action, data, body;
+  let action, data, body;
 
-  chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     action = message.action;
 
     switch(action) {
@@ -197,17 +200,16 @@ function setMessageListeners() {
         toSelected = data.to;
 
         translate(body, fromSelected, toSelected)
-        .done(function() {
+        .done(() => {
+          enable = RESET;
           sendResponse(SUCCESS);
         })
-        .catch(function() {
-          sendResponse(FAILURE);
-        });
+        .catch(() => sendResponse(FAILURE));
         return true;
 
       case "switchOff":
         body = getCurrentTabContent();
-        resetContent(body, function() {
+        resetContent(body, () => {
           enable = TRANSLATE;
           sendResponse(SUCCESS);
         });
@@ -215,7 +217,7 @@ function setMessageListeners() {
 
       case "getCurrentTabStatus":
         sendResponse({
-          enable: enable,
+          enable,
           from: fromSelected,
           to: toSelected
         });
