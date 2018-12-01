@@ -4,7 +4,7 @@ var Config = (function() {
 
   self.default = {
     fromLanguage: "荷蘭文",
-    toLanguage: "繁體中文"
+    toLanguage: "英文"
   };
 
   self.apiKey = "";

@@ -3,6 +3,11 @@
   "version": "0.0.1",
   "manifest_version": 2,
   "description": "A Chrome Extension not only translate texts but also images.",
+  "icons": {
+    "16": "image/logo.png",
+    "48": "image/logo.png",
+    "128": "image/logo.png"
+  },
   "author": [
     "malikid"
   ],
@@ -15,13 +20,13 @@
     "persistent": true
   },
   "browser_action": {
+    "default_icon": "image/logo.png",
     "default_title": "MoreThanGoogleTranslate",
     "default_popup": "popup.html"
   },
   "permissions": [
     "<all_urls>",
-    "tabs",
-    "*://*.google.com/*"
+    "activeTab"
   ],
   "content_scripts": [
     {
@@ -34,9 +39,6 @@
         "js/utilities.js",
         "lib/jquery-3.3.1.min.js",
         "js/inject.js"
-      ],
-      "css": [
-        "css/inject.css"
       ],
       "run_at": "document_end"
     }
