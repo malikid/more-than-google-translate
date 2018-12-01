@@ -2,7 +2,7 @@
   "name": "MoreThanGoogleTranslate",
   "version": "0.0.1",
   "manifest_version": 2,
-  "description": "MoreThanGoogleTranslate Chrome Extension",
+  "description": "A Chrome Extension not only translate texts but also images.",
   "author": [
     "malikid"
   ],
@@ -21,7 +21,6 @@
   "permissions": [
     "<all_urls>",
     "tabs",
-    "identity",
     "*://*.google.com/*"
   ],
   "content_scripts": [

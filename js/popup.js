@@ -144,7 +144,7 @@ function sendMessageToBackground(action, data, callback) {
 
 // switch on/off
 function clickSwitch() {
-  let action, valueToSet;
+  let action;
   let switchValue = switchElement.innerHTML;
   let data = {
     from: fromElement.value,
@@ -154,39 +154,27 @@ function clickSwitch() {
   if(switchValue.indexOf(RESET) != -1) {
     switchElement.innerHTML = PROCESSING;
     action = "switchOff";
-    valueToSet = TRANSLATE;
   } else if(switchValue.indexOf(TRANSLATE) != -1) {
     switchElement.innerHTML = PROCESSING;
     action = "switchOn";
-    valueToSet = RESET;
   } else {
     return;
   }
 
-  sendMessageToInject(action, data, status => {
-    if(status === SUCCESS) {
-      switchElement.innerHTML = valueToSet;
-    } else {
-      switchElement.innerHTML = !valueToSet;
-    }
-  });
+  sendMessageToInject(action, data, status =>
+    switchElement.innerHTML = status
+  );
 }
 
 
 
 (function () {
-  let enable;
 
   switchElement = document.getElementById("switch");
 
   sendMessageToInject("getCurrentTabStatus", status => {
-    enable = status.enable;
 
-    if(enable === undefined) {
-      enable = TRANSLATE;
-    }
-    
-    switchElement.innerHTML = enable;
+    switchElement.innerHTML = status.enable || TRANSLATE;
     switchElement.addEventListener("click", clickSwitch);
 
     init(status);

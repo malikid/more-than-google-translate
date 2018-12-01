@@ -233,18 +233,16 @@ function setMessageListeners() {
         toSelected = data.to;
 
         translate(body, fromSelected, toSelected)
-        .done(() => {
-          enable = RESET;
-          sendResponse(SUCCESS);
-        })
-        .catch(() => sendResponse(FAILURE));
+        .always(() => enable = RESET)
+        .done(() => sendResponse(enable))
+        .catch(() => sendResponse(enable));
         return true;
 
       case "switchOff":
         body = getCurrentTabContent();
         resetContent(body, () => {
           enable = TRANSLATE;
-          sendResponse(SUCCESS);
+          sendResponse(enable);
         });
         return true;
 
