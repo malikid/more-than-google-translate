@@ -10,9 +10,27 @@ const KEY = Config.apiKey;
 
 
 
-function ocrFromGoogle(image, to) {
+function setImageObject(image) {
+  if(image.startsWith("data:image/")) {
+    return {
+      content: image.split(",")[1]
+    };
+  }
+
+  return {
+    source: {
+      imageUri: image
+    }
+  };
+}
+
+
+
+function ocrFromGoogle(img, to) {
   let defer = $.Deferred();
   let url = "https://vision.googleapis.com/v1/images:annotate?key=" + KEY;
+
+  let image = setImageObject(img);
 
   $.ajax({
     url,
@@ -22,11 +40,7 @@ function ocrFromGoogle(image, to) {
     data: JSON.stringify({
       requests: [
         {
-          image: {
-            source: {
-              imageUri: image
-            }
-          },
+          image,
           features: [
             {
               type: 'TEXT_DETECTION'
@@ -36,10 +50,14 @@ function ocrFromGoogle(image, to) {
       ]
     }),
     success: data => {
-      if($.isEmptyObject(data.responses[0])) {
+      let resultObj = data.responses[0];
+      if($.isEmptyObject(resultObj)) {
         return defer.resolve();
       }
-      let detectedTextObj = data.responses[0].textAnnotations[0];
+      if(resultObj.error) {
+        return defer.reject(resultObj.error);
+      }
+      let detectedTextObj = resultObj.textAnnotations[0];
       getTranslationFromGoogle(detectedTextObj.description, detectedTextObj.locale, to)
       .done(result => defer.resolve({
           text: result,
@@ -48,9 +66,7 @@ function ocrFromGoogle(image, to) {
       )
       .catch(error => defer.reject(error));
     },
-    fail: error => {
-      defer.reject(error);
-    }
+    fail: error => defer.reject(error)
   });
   // Test Only
   // defer.resolve('');
@@ -79,8 +95,6 @@ function getTranslationFromGoogle(text, from, to) {
 
 
 function setMessageListener() {
-  console.log("setMessageListener");
-
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     let action = message.action;
     let {data} = message;

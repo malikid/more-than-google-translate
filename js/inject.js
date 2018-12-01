@@ -217,7 +217,6 @@ function getCurrentTabContent(cb) {
 
 
 function setMessageListeners() {
-  console.log("setMessageListeners");
   let action, data, body;
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

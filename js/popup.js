@@ -97,8 +97,6 @@ function init(data) {
 
 
 function sendMessageToInject(action, data, callback) {
-  console.log("sendMessageToInject");
-
   if(isFunction(data)) {
     callback = data;
     data = undefined;
