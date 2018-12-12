@@ -76,13 +76,12 @@ function ocrFromGoogle(img, to) {
 
 
 
-function getTranslationFromGoogle(text, from, to) {
+function getTranslationFromGoogle(text, to) {
   let defer = $.Deferred();
   let url = "https://translation.googleapis.com/language/translate/v2?key=" + KEY;
 
   $.post(url, {
     'q': text,
-    'source': LANGUAGE_OPTIONS[from],
     'target': LANGUAGE_OPTIONS[to],
     'format': 'text'
   }, data => defer.resolve(data.data.translations[0].translatedText), "json");
@@ -98,12 +97,12 @@ function setMessageListener() {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     let action = message.action;
     let {data} = message;
-    let {image, text, from, to} = data;
+    let {image, text, to} = data;
 
     switch(action) {
 
       case "translate":
-        getTranslationFromGoogle(text, from, to)
+        getTranslationFromGoogle(text, to)
         .done(result => sendResponse({status: SUCCESS, result}))
         .catch(error => sendResponse({status: FAILURE, error}));
         return true;

@@ -11,71 +11,37 @@ const TRANSLATE = CONSTANTS.TRANSLATE;
 const PROCESSING = CONSTANTS.PROCESSING;
 const RESET = CONSTANTS.RESET;
 
-let switchElement, fromElement, toElement;
-let fromSelectedLanguage, toSelectedLanguage;
+let switchElement, toElement;
+let toSelectedLanguage;
 
 
 
-function addOptionElement(element, language, anotherSelectedLanguage) {
-  let isSelectedByAnotherSelector = false;
+function addOptionElement(element, language) {
   let option = document.createElement("option");
   option.text = language;
-
-  if(anotherSelectedLanguage && anotherSelectedLanguage === language) {
-    isSelectedByAnotherSelector = true
-    option.disabled = true;
-  }
-
   element.add(option);
-  return isSelectedByAnotherSelector;
-}
-
-
-
-function resetOptions(selectElement) {
-  let optionLength = selectElement.options.length;
-  for(let i = optionLength - 1; i >= 0; i--) {
-    selectElement.remove(i);
-  }
 }
 
 
 
 function setLanguageSelectors() {
-  let fromSelectedIndex = 0;
   let toSelectedIndex = 1;
 
   languageOptionKeys = Object.keys(LANGUAGE_OPTIONS);
 
-  resetOptions(fromElement);
-  resetOptions(toElement);
-
-  for(let i = 0, language, option; i < languageOptionKeys.length; i++) {
+  for(let i = 0, language; i < languageOptionKeys.length; i++) {
     language = languageOptionKeys[i];
-
-    if(addOptionElement(fromElement, language, toSelectedLanguage)) {
-      toSelectedIndex = i;
-    }
-
-    if(addOptionElement(toElement, language, fromSelectedLanguage)) {
-      fromSelectedIndex = i;
-    }
+    addOptionElement(toElement, language);
   }
 
   // Default
-  fromElement.selectedIndex = fromSelectedIndex;
   toElement.selectedIndex = toSelectedIndex;
 }
 
 
 
 function init(data) {
-  fromSelectedLanguage = data.from;
   toSelectedLanguage = data.to;
-
-  if(!fromElement) {
-    fromElement = document.querySelector("select.from");
-  }
 
   if(!toElement) {
     toElement = document.querySelector("select.to");
@@ -83,14 +49,8 @@ function init(data) {
 
   setLanguageSelectors();
 
-  fromElement.addEventListener("change", function() {
-    fromSelectedLanguage = this.value;
-    setLanguageSelectors();
-  });
-
   toElement.addEventListener("change", function() {
     toSelectedLanguage = this.value;
-    setLanguageSelectors();
   });
 }
 
@@ -147,7 +107,6 @@ function clickSwitch() {
   let action;
   let switchValue = switchElement.innerHTML;
   let data = {
-    from: fromElement.value,
     to: toElement.value
   };
 

@@ -12,7 +12,6 @@ const RESET = CONSTANTS.RESET;
 const defaultLanguages = Config.default;
 
 let enable, originalBody;
-let fromSelected = defaultLanguages.fromLanguage;
 let toSelected = defaultLanguages.toLanguage;
 
 
@@ -38,12 +37,11 @@ function sendMessageToBackground(action, data, callback) {
 
 
 
-function ocrFromGoogle(image, from, to) {
+function ocrFromGoogle(image, to) {
   let defer = $.Deferred();
 
   let data = {
     image,
-    from,
     to
   };
 
@@ -62,7 +60,7 @@ function ocrFromGoogle(image, from, to) {
 
 
 
-function getTranslationFromGoogle(text, from, to) {
+function getTranslationFromGoogle(text, to) {
   let defer = $.Deferred();
 
   if(!$.trim(text)) {
@@ -72,7 +70,6 @@ function getTranslationFromGoogle(text, from, to) {
 
   let data = {
     text,
-    from,
     to
   };
 
@@ -91,14 +88,14 @@ function getTranslationFromGoogle(text, from, to) {
 
 
 
-function getText(node, from, to) {
+function getText(node, to) {
   let originNode = node;
 
   if (node.nodeType === 3) {
     if(!node.data) {
       return node;
     } else {
-      return getTranslationFromGoogle(node.data, from, to)
+      return getTranslationFromGoogle(node.data, to)
       .then(value => {
         node.data = value;
         return node;
@@ -106,21 +103,21 @@ function getText(node, from, to) {
     }
   } else if(node.tagName === "INPUT") {
     if(node.value) {
-      return getTranslationFromGoogle(node.value, from, to)
+      return getTranslationFromGoogle(node.value, to)
       .then(value => {
         node.value = value;
         return node;
       });
     }
     if(node.placeholder) {
-      return getTranslationFromGoogle(node.placeholder, from, to)
+      return getTranslationFromGoogle(node.placeholder, to)
       .then(value => {
         node.placeholder = value;
         return node;
       });
     }
   } else if(node.tagName === "IMG") {
-    return ocrFromGoogle(node.src, from, to)
+    return ocrFromGoogle(node.src, to)
     .then(result => {
       if(!result) {
         return node;
@@ -134,7 +131,7 @@ function getText(node, from, to) {
   let promises = [];
 
   if(node = node.firstChild) do {
-    promises.push(getText(node, from, to));
+    promises.push(getText(node, to));
   } while (node = node.nextSibling);
 
   let defer = $.Deferred();
@@ -161,7 +158,7 @@ function getText(node, from, to) {
 
 
 
-function translate(body, from, to) {
+function translate(body, to) {
   let defer = $.Deferred();
   let bodyElement = body.get(0);
   let tagName = "";
@@ -176,7 +173,7 @@ function translate(body, from, to) {
         defer2.resolve(child);
         return defer2.promise();
       default:
-        return getText(child, from, to);
+        return getText(child, to);
     }
   });
 
@@ -229,10 +226,9 @@ function setMessageListeners() {
         storeOriginalBody(body);
 
         data = message.data;
-        fromSelected = data.from;
         toSelected = data.to;
 
-        translate(body, fromSelected, toSelected)
+        translate(body, toSelected)
         .always(() => enable = RESET)
         .done(() => sendResponse(enable))
         .catch(() => sendResponse(enable));
@@ -249,7 +245,6 @@ function setMessageListeners() {
       case "getCurrentTabStatus":
         sendResponse({
           enable,
-          from: fromSelected,
           to: toSelected
         });
         return true;
