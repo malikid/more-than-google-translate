@@ -17,6 +17,10 @@ function setImageObject(image) {
     };
   }
 
+  if(image.startsWith("//")) {
+    image = "http:" + image;
+  }
+
   return {
     source: {
       imageUri: image
@@ -58,8 +62,9 @@ function ocrFromGoogle(img, to) {
         return defer.reject(resultObj.error);
       }
       let detectedTextObj = resultObj.textAnnotations[0];
-      getTranslationFromGoogle(detectedTextObj.description, detectedTextObj.locale, to)
-      .done(result => defer.resolve({
+      getTranslationFromGoogle(detectedTextObj.description, to)
+      .done(result =>
+        defer.resolve({
           text: result,
           boundingPoly: detectedTextObj.boundingPoly
         })

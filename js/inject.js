@@ -116,8 +116,11 @@ function getText(node, to) {
         return node;
       });
     }
+    return node;
   } else if(node.tagName === "IMG") {
-    return ocrFromGoogle(node.src, to)
+    let imageSrc = node.src || $(node).attr("data-src");
+
+    return ocrFromGoogle(imageSrc, to)
     .then(result => {
       if(!result) {
         return node;
@@ -169,6 +172,7 @@ function translate(body, to) {
       case "SCRIPT":
       case "STYLE":
       case "LINK":
+      case "META":
         let defer2 = $.Deferred();
         defer2.resolve(child);
         return defer2.promise();
