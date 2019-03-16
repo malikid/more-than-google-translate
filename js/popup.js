@@ -25,8 +25,6 @@ function addOptionElement(element, language) {
 
 
 function setLanguageSelectors() {
-  let toSelectedIndex = 1;
-
   languageOptionKeys = Object.keys(LANGUAGE_OPTIONS);
 
   for(let i = 0, language; i < languageOptionKeys.length; i++) {

@@ -252,8 +252,6 @@ function setMessageListeners() {
   });
 }
 
-
-
 (function init() {
   enable = TRANSLATE;
   setMessageListeners();
