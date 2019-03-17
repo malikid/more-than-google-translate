@@ -1,6 +1,6 @@
 {
   "name": "MoreThanGoogleTranslate",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "manifest_version": 2,
   "description": "A Chrome Extension not only translate texts but also images.",
   "icons": {
